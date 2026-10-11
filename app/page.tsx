@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-orange-500 selection:text-black">
       
-      {/* 1. BARRA DE NAVEGACIÓN */}
+      {/* 1. NAVBAR */}
       <header className="sticky top-0 z-40 w-full border-b border-zinc-900 bg-zinc-950/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <a href="#" className="flex items-center gap-2 text-zinc-100 hover:text-white">
@@ -22,7 +22,6 @@ export default function Home() {
             <span className="font-mono font-bold tracking-tight text-lg text-white">NP SOLUTIONS</span>
           </a>
 
-          {/* Menú de escritorio */}
           <nav className="hidden md:flex items-center gap-8 text-xs font-mono uppercase tracking-wider text-zinc-400">
             <a href="#mopa" className="hover:text-orange-500 transition-colors">Láser MOPA 100W</a>
             <a href="#frentes" className="hover:text-orange-500 transition-colors">Frentes de Tablero</a>
@@ -36,7 +35,6 @@ export default function Home() {
             </a>
           </nav>
 
-          {/* Botón menú móvil */}
           <div className="flex md:hidden">
             <button
               type="button"
@@ -57,7 +55,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Desplegable móvil */}
         {menuOpen && (
           <div className="md:hidden border-b border-zinc-900 bg-zinc-950 px-4 pt-2 pb-6 space-y-3 font-mono text-sm">
             <a
@@ -92,7 +89,7 @@ export default function Home() {
         )}
       </header>
 
-      {/* 2. HERO PRINCIPAL MOPA */}
+      {/* 2. HERO */}
       <section className="relative w-full border-b border-zinc-900 bg-zinc-950 py-20 lg:py-28 overflow-hidden">
         <div 
           className="absolute inset-0 opacity-10 pointer-events-none"
@@ -135,7 +132,6 @@ export default function Home() {
               </a>
             </div>
 
-            {/* Ficha técnica resumida */}
             <div className="mt-12 grid grid-cols-2 sm:grid-cols-3 gap-4 border-t border-zinc-900 pt-6 font-mono text-xs text-zinc-500">
               <div>
                 <span className="text-zinc-300 block font-bold">MOPA 100W</span>
@@ -154,7 +150,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 3. CAPACIDADES DEL LÁSER MOPA 100W */}
+      {/* 3. CAPACIDADES */}
       <section id="mopa" className="w-full bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8 border-b border-zinc-900">
         <div className="mx-auto max-w-7xl">
           <span className="font-mono text-xs text-orange-500 font-bold block mb-2 uppercase">Tecnología Especializada</span>
@@ -214,7 +210,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. PRODUCTO ESTRELLA: FRENTES DE TABLERO LLAVE EN MANO */}
+      {/* 4. FRENTES DE TABLERO */}
       <section id="frentes" className="w-full bg-zinc-900/10 py-20 px-4 sm:px-6 lg:px-8 border-b border-zinc-900">
         <div className="mx-auto max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-7">
@@ -264,7 +260,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 5. CNC Y SOLDADURA DE TERMOPLÁSTICOS */}
+      {/* 5. OTROS SERVICIOS */}
       <section id="servicios" className="w-full bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8 border-b border-zinc-900">
         <div className="mx-auto max-w-7xl">
           <span className="font-mono text-xs text-orange-500 font-bold block mb-2 uppercase">Servicios Complementarios</span>
@@ -302,7 +298,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 6. FORMULARIO DE COTIZACIÓN */}
+      {/* 6. FORMULARIO */}
       <section id="cotizar" className="w-full bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
           <div className="border border-zinc-800 bg-zinc-900/40 p-6 sm:p-10 rounded-none">
@@ -463,7 +459,6 @@ export default function Home() {
                   />
                 </div>
 
-                {/* Adjunto de planos */}
                 <div>
                   <label className="block font-mono text-xs uppercase text-zinc-300 mb-2">
                     Adjuntar Plano Técnico o Esquema (PDF, DXF, DWG, STEP, JPG, PNG)
@@ -603,4 +598,13 @@ export default function Home() {
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.
+            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
+          </svg>
+          <span className="font-mono text-xs font-bold uppercase tracking-wider hidden sm:inline">
+            Cotizar por WhatsApp
+          </span>
+        </a>
+      </aside>
+    </div>
+  );
+}
