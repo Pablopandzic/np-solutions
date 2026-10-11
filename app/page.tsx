@@ -1,20 +1,207 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 
 const WHATSAPP_NUMERO = '5492304302622';
+const WHATSAPP_VISIBLE = '+54 9 2304 30-2622';
+const CORREO = 'adm.npsolutions@gmail.com';
 const LIMITE_MB = 4;
 const LIMITE_BYTES = LIMITE_MB * 1024 * 1024;
 
-// Fotos de la página. Para usar fotos propias, guardalas en la carpeta /public/fotos/
-// del proyecto y reemplazá cada URL por su ruta, por ejemplo: '/fotos/hero.jpg'
+/*
+ * FOTOS
+ * Para usar fotos propias, subilas a la carpeta public/fotos/ del proyecto
+ * y escribí acá la ruta. Ejemplo:  inox: '/fotos/inox.jpg'
+ * Si un campo queda vacío (''), se muestra la muestra gráfica del material.
+ */
 const FOTOS = {
-  hero: 'https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=1000&q=80',
-  frentes: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
-  muestras: 'https://images.unsplash.com/photo-1563770660941-20978e870e26?auto=format&fit=crop&w=800&q=80',
+  hero: 'https://images.unsplash.com/photo-1615286922420-c6b348ffbd62?auto=format&fit=crop&w=1400&q=80',
+  frentes: '',
+  funeraria: '',
+  inox: '',
+  color: '',
+  anodizado: '',
+  pintada: '',
+  plastico: '',
+  piedra: '',
 };
 
 type EstadoEnvio = 'idle' | 'enviando' | 'ok' | 'error';
+type TipoMuestra = 'inox' | 'color' | 'anodizado' | 'pintada' | 'plastico' | 'piedra';
+
+const ENLACES: Array<{ href: string; texto: string; soloMovil?: boolean }> = [
+  { href: '#servicios', texto: 'Servicios' },
+  { href: '#materiales', texto: 'Materiales' },
+  { href: '#frentes', texto: 'Frentes de tablero' },
+  { href: '#funeraria', texto: 'Funeraria' },
+  { href: '#industrias', texto: 'Industrias' },
+  { href: '#proceso', texto: 'Cómo trabajamos', soloMovil: true },
+];
+
+const DATOS_CLAVE = [
+  { valor: 'MOPA 100 W', texto: 'Láser de fibra con pulso ajustable' },
+  { valor: '±0,1 mm', texto: 'Tolerancia estándar en router CNC Difra' },
+  { valor: '1 proveedor', texto: 'Corte, plegado, torneado y pintura con aliados' },
+  { valor: 'Pilar, Bs. As.', texto: 'Taller propio' },
+];
+
+const SERVICIOS_PROPIOS = [
+  {
+    titulo: 'Grabado y marcado láser',
+    texto: 'Láser de fibra MOPA para textos, logos, números de serie, códigos QR y DataMatrix sobre metal, plástico y piedra.',
+  },
+  {
+    titulo: 'Mecanizado CNC',
+    texto: 'Router CNC Difra para ruteo, fresado y perforado de plásticos técnicos, aluminio y piedra, con tolerancia estándar de ±0,1 mm.',
+  },
+  {
+    titulo: 'Frentes de tablero',
+    texto: 'Mecanizado y rotulación en la misma pieza: cada texto queda alineado con su orificio.',
+  },
+  {
+    titulo: 'Trabajos en piedra',
+    texto: 'Grabado y mecanizado de letras, fechas y símbolos en granito y mármol, con relleno de pintura.',
+  },
+];
+
+const SERVICIOS_ALIADOS = [
+  { titulo: 'Corte láser de chapa', texto: 'Piezas planas en acero al carbono, inoxidable y aluminio según tu plano.' },
+  { titulo: 'Plegado', texto: 'Gabinetes, soportes y piezas de chapa plegada.' },
+  { titulo: 'Torneado', texto: 'Bujes, ejes y piezas de revolución.' },
+  { titulo: 'Pintura industrial', texto: 'Terminación de alta calidad para interior y exterior, en el color que necesites.' },
+];
+
+const MATERIALES: Array<{
+  muestra: TipoMuestra;
+  foto: string;
+  nombre: string;
+  resultado: string;
+  descripcion: string;
+  usos: string;
+}> = [
+  {
+    muestra: 'inox',
+    foto: FOTOS.inox,
+    nombre: 'Acero inoxidable',
+    resultado: 'Marcado oscuro y grabado profundo',
+    descripcion:
+      'Marcado por recocido sin quitar material, o grabado con surco para piezas expuestas a la abrasión. Números de serie, códigos QR y DataMatrix.',
+    usos: 'Válvulas, equipos de proceso, placas de identificación',
+  },
+  {
+    muestra: 'color',
+    foto: FOTOS.color,
+    nombre: 'Grabado en color sobre inoxidable',
+    resultado: 'Colores por oxidación controlada',
+    descripcion:
+      'El láser MOPA genera colores sobre el acero inoxidable sin tintas ni solventes: dorados, violetas, azules y turquesas.',
+    usos: 'Identificación visual, logos, piezas decorativas',
+  },
+  {
+    muestra: 'anodizado',
+    foto: FOTOS.anodizado,
+    nombre: 'Aluminio anodizado',
+    resultado: 'Alto contraste, lectura a distancia',
+    descripcion:
+      'Rotulación nítida y permanente sobre aluminio anodizado, ideal para frentes de tablero, placas y escalas.',
+    usos: 'Tableristas, carteles técnicos, placas de características',
+  },
+  {
+    muestra: 'pintada',
+    foto: FOTOS.pintada,
+    nombre: 'Chapa pintada',
+    resultado: 'Grabado que deja el metal a la vista',
+    descripcion:
+      'El láser retira la pintura con precisión y deja el texto en metal brillante sobre el color de la pieza.',
+    usos: 'Gabinetes, puertas de tablero, carcasas',
+  },
+  {
+    muestra: 'plastico',
+    foto: FOTOS.plastico,
+    nombre: 'Plásticos de ingeniería',
+    resultado: 'Marcado nítido y mecanizado CNC',
+    descripcion:
+      'Marcado sin deformar la pieza en ABS, policarbonato y poliamidas; ruteo y fresado de POM, PEAD, Grilon y acrílico.',
+    usos: 'Gabinetes, conectores, piezas técnicas',
+  },
+  {
+    muestra: 'piedra',
+    foto: FOTOS.piedra,
+    nombre: 'Granito y mármol',
+    resultado: 'Grabado y mecanizado en piedra',
+    descripcion:
+      'Letras, fechas y símbolos grabados o mecanizados en piedra, con relleno de pintura de alta calidad apta para exterior.',
+    usos: 'Lápidas, placas recordatorias, señalética',
+  },
+];
+
+const FICHA_FRENTES: Array<[string, string]> = [
+  ['Materiales', 'Aluminio anodizado, acero inoxidable, policarbonato, acrílico y ABS'],
+  ['Tolerancia', '±0,1 mm en el mecanizado (router CNC Difra)'],
+  ['Archivos', 'DXF, DWG, PDF con cotas o croquis con la lista de componentes'],
+  ['Con aliados', 'Corte láser de chapa, plegado y pintura del gabinete o la placa'],
+];
+
+const TRABAJOS_FUNERARIOS = [
+  'Lápidas y placas recordatorias',
+  'Placas para nichos y columbarios',
+  'Señalética y numeración para cementerios',
+  'Tercerización de grabado para marmolerías',
+];
+
+const INDUSTRIAS = [
+  {
+    titulo: 'Oil & Gas',
+    texto: 'Identificación de bridas, válvulas y placas de equipos con grabado profundo apto para intemperie.',
+  },
+  {
+    titulo: 'Minería',
+    texto: 'Rotulación resistente a la abrasión, el polvo y la vibración para equipos y estructuras.',
+  },
+  {
+    titulo: 'Tableristas y energía',
+    texto: 'Frentes de tablero mecanizados y rotulados, placas de advertencia y carteles de identificación.',
+  },
+  {
+    titulo: 'Farmacéutica y alimentaria',
+    texto: 'Marcado sin remoción de material sobre acero inoxidable para la trazabilidad de piezas y equipos.',
+  },
+  {
+    titulo: 'Industria funeraria',
+    texto: 'Lápidas, placas recordatorias y señalética en piedra y metal, con pintura para exterior.',
+  },
+  {
+    titulo: 'Fabricantes de equipos',
+    texto: 'Placas de características, números de serie, logos y piezas mecanizadas para producción en serie.',
+  },
+];
+
+const PASOS = [
+  {
+    numero: '01',
+    titulo: 'Envío del plano',
+    texto: 'Mandanos tu archivo en DXF, DWG, STEP o PDF con cotas. Si no tenés plano, una foto con las medidas principales alcanza para empezar.',
+  },
+  {
+    numero: '02',
+    titulo: 'Cotización formal',
+    texto: 'Te enviamos un presupuesto con plazo de entrega y condiciones comerciales.',
+  },
+  {
+    numero: '03',
+    titulo: 'Fabricación',
+    texto: 'Grabamos y mecanizamos en nuestro taller de Pilar. Si la pieza necesita corte, plegado, torneado o pintura, lo coordinamos con nuestros aliados.',
+  },
+  {
+    numero: '04',
+    titulo: 'Entrega',
+    texto: 'Retirás en el taller o coordinamos el envío. Recibís la pieza terminada de un solo proveedor.',
+  },
+];
+
+const CLASE_CAMPO =
+  'w-full border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 placeholder-zinc-400 transition-colors focus:border-orange-600 focus:outline-none focus:ring-1 focus:ring-orange-600';
+const CLASE_ETIQUETA = 'mb-2 block text-sm font-medium text-zinc-700';
 
 function formatearPeso(bytes: number) {
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -27,16 +214,14 @@ export default function Home() {
   const [estado, setEstado] = useState<EstadoEnvio>('idle');
   const [errorEnvio, setErrorEnvio] = useState('');
 
-  const pesoArchivos = archivos
-    ? Array.from(archivos).reduce((total, a) => total + a.size, 0)
-    : 0;
+  const pesoArchivos = archivos ? Array.from(archivos).reduce((total, a) => total + a.size, 0) : 0;
   const excedeLimite = pesoArchivos > LIMITE_BYTES;
 
   async function enviarFormulario(form: HTMLFormElement) {
     if (excedeLimite) {
       setEstado('error');
       setErrorEnvio(
-        `Los archivos adjuntos superan los ${LIMITE_MB} MB. Quitá alguno o envialos directamente a adm.npsolutions@gmail.com.`
+        `Los archivos adjuntos superan los ${LIMITE_MB} MB. Quitá alguno o envialos directamente a ${CORREO}.`
       );
       return;
     }
@@ -52,7 +237,7 @@ export default function Home() {
 
       if (res.status === 413) {
         throw new Error(
-          `Los archivos son demasiado pesados (máximo ${LIMITE_MB} MB en total). Envialos directamente a adm.npsolutions@gmail.com.`
+          `Los archivos son demasiado pesados (máximo ${LIMITE_MB} MB en total). Envialos directamente a ${CORREO}.`
         );
       }
 
@@ -76,869 +261,850 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-orange-500 selection:text-black">
-      
-      {/* 1. NAVBAR */}
-      <header className="sticky top-0 z-40 w-full border-b border-zinc-800 bg-zinc-950/95 backdrop-blur">
+    <div className="flex min-h-screen flex-col bg-white font-sans text-zinc-900 antialiased selection:bg-orange-200">
+      {/* 1. ENCABEZADO */}
+      <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <a href="#" className="flex items-center gap-2 text-zinc-100 hover:text-white">
-            <span className="font-mono text-xs text-orange-500 font-bold">[NP]</span>
-            <span className="font-mono font-bold tracking-tight text-lg text-white">NP SOLUTIONS</span>
-          </a>
+          <Logo />
 
-          <nav className="hidden xl:flex items-center gap-8 text-xs font-mono uppercase tracking-wider text-zinc-400">
-            <a href="#mopa" className="hover:text-orange-500 transition-colors">Láser MOPA 100W</a>
-            <a href="#frentes" className="hover:text-orange-500 transition-colors">Frentes de Tablero</a>
-            <a href="#capacidades" className="hover:text-orange-500 transition-colors">Capacidades</a>
-            <a href="#proceso" className="hover:text-orange-500 transition-colors">Cómo Trabajamos</a>
-            <a href="#industrias" className="hover:text-orange-500 transition-colors">Industrias</a>
-            <a href="#servicios" className="hover:text-orange-500 transition-colors">CNC y Soldadura</a>
+          <nav className="hidden items-center gap-7 text-sm font-medium text-zinc-600 lg:flex">
+            {ENLACES.filter((e) => !e.soloMovil).map((e) => (
+              <a key={e.href} href={e.href} className="transition-colors hover:text-zinc-900">
+                {e.texto}
+              </a>
+            ))}
             <a
               href="#cotizar"
-              className="rounded-none bg-orange-600 px-4 py-2 font-mono text-xs font-bold text-white hover:bg-orange-500 transition-colors"
+              className="bg-orange-600 px-5 py-2.5 font-semibold text-white transition-colors hover:bg-orange-700"
             >
-              Cotizar Plano
+              Cotizar plano
             </a>
           </nav>
 
-          <div className="flex xl:hidden">
-            <button
-              type="button"
-              onClick={() => setMenuOpen(!menuOpen)}
-              aria-expanded={menuOpen}
-              aria-label="Abrir menú de navegación"
-              className="inline-flex items-center justify-center p-2 text-zinc-400 hover:text-white border border-zinc-800 rounded-none focus:outline-none"
-            >
-              <span className="font-mono text-xs mr-2">{menuOpen ? 'CERRAR' : 'MENÚ'}</span>
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                {menuOpen ? (
-                  <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-expanded={menuOpen}
+            aria-label={menuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
+            className="inline-flex items-center gap-2 border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:border-zinc-900 lg:hidden"
+          >
+            {menuOpen ? 'Cerrar' : 'Menú'}
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              {menuOpen ? (
+                <path strokeLinecap="square" strokeWidth="1.5" d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="square" strokeWidth="1.5" d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
         </div>
 
         {menuOpen && (
-          <div className="xl:hidden border-b border-zinc-800 bg-zinc-950 px-4 pt-2 pb-6 space-y-3 font-mono text-sm">
-            <a href="#mopa" onClick={() => setMenuOpen(false)} className="block text-zinc-300 hover:text-orange-500 py-2 border-b border-zinc-900">
-              Láser MOPA 100W
-            </a>
-            <a href="#frentes" onClick={() => setMenuOpen(false)} className="block text-zinc-300 hover:text-orange-500 py-2 border-b border-zinc-900">
-              Frentes de Tablero
-            </a>
-            <a href="#capacidades" onClick={() => setMenuOpen(false)} className="block text-zinc-300 hover:text-orange-500 py-2 border-b border-zinc-900">
-              Capacidades
-            </a>
-            <a href="#proceso" onClick={() => setMenuOpen(false)} className="block text-zinc-300 hover:text-orange-500 py-2 border-b border-zinc-900">
-              Cómo Trabajamos
-            </a>
-            <a href="#industrias" onClick={() => setMenuOpen(false)} className="block text-zinc-300 hover:text-orange-500 py-2 border-b border-zinc-900">
-              Industrias
-            </a>
-            <a href="#servicios" onClick={() => setMenuOpen(false)} className="block text-zinc-300 hover:text-orange-500 py-2 border-b border-zinc-900">
-              CNC y Soldadura
-            </a>
-            <a href="#cotizar" onClick={() => setMenuOpen(false)} className="block text-center bg-orange-600 px-4 py-3 font-bold text-white hover:bg-orange-500 rounded-none mt-4">
-              Cotizar Plano
+          <div className="border-t border-zinc-200 bg-white px-4 pb-6 pt-2 lg:hidden">
+            {ENLACES.map((e) => (
+              <a
+                key={e.href}
+                href={e.href}
+                onClick={() => setMenuOpen(false)}
+                className="block border-b border-zinc-100 py-3 text-base text-zinc-700 hover:text-orange-700"
+              >
+                {e.texto}
+              </a>
+            ))}
+            <a
+              href="#cotizar"
+              onClick={() => setMenuOpen(false)}
+              className="mt-4 block bg-orange-600 px-4 py-3 text-center font-semibold text-white hover:bg-orange-700"
+            >
+              Cotizar plano
             </a>
           </div>
         )}
       </header>
 
-      {/* 2. HERO PRINCIPAL MOPA */}
-      <section id="mopa" className="relative w-full border-b border-zinc-800 bg-zinc-950 py-20 lg:py-28 overflow-hidden">
-        <div 
-          className="absolute inset-0 opacity-10 pointer-events-none"
-          style={{
-            backgroundImage: 'radial-gradient(#f97316 1px, transparent 1px), radial-gradient(#27272a 1px, transparent 1px)',
-            backgroundSize: '32px 32px',
-            backgroundPosition: '0 0, 16px 16px'
-          }}
-        />
-
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-7">
-            <div className="inline-flex items-center gap-2 border border-zinc-800 bg-zinc-900/80 px-3 py-1 font-mono text-xs uppercase tracking-wider text-orange-500 mb-6 rounded-none">
-              <span className="h-2 w-2 bg-orange-500 inline-block animate-pulse" />
-              Láser de fibra MOPA 100W · Pilar, Buenos Aires
-            </div>
-
-            <h1 className="font-mono text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white uppercase leading-none">
-              Marcado láser industrial permanente
-            </h1>
-
-            <p className="mt-6 text-base sm:text-lg text-zinc-400 font-sans leading-relaxed">
-              Rotulación, trazabilidad y frentes de tablero para Oil & Gas, minería, energía y farmacéutica. 
-              Grabamos acero inoxidable, aluminio anodizado y plásticos de ingeniería con la pieza completa 
-              resuelta en un solo proveedor.
+      {/* 2. PRESENTACIÓN */}
+      <section className="border-b border-zinc-200 bg-white">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-12 lg:px-8 lg:py-24">
+          <div className="lg:col-span-6">
+            <p className="flex items-center gap-3 text-sm font-semibold text-orange-700">
+              <span className="h-px w-8 bg-orange-600" />
+              Taller industrial · Pilar, Buenos Aires
             </p>
-
-            <div className="mt-8 flex flex-col sm:flex-row gap-4 font-mono text-xs">
+            <h1 className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-zinc-900 sm:text-5xl lg:text-6xl">
+              Grabado láser y mecanizado CNC para la industria
+            </h1>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-zinc-600">
+              Marcado permanente, frentes de tablero, piezas mecanizadas y trabajos en piedra. Lo que no hacemos en
+              nuestro taller lo resolvemos con aliados estratégicos: corte láser, plegado, torneado y pintura.
+            </p>
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
               <a
                 href="#cotizar"
-                className="inline-flex items-center justify-center rounded-none bg-orange-600 px-6 py-4 font-bold text-white hover:bg-orange-500 transition-colors uppercase tracking-wider"
+                className="inline-flex items-center justify-center bg-orange-600 px-7 py-4 text-sm font-semibold text-white transition-colors hover:bg-orange-700"
               >
                 Enviar plano para cotizar
               </a>
               <a
-                href="#muestras"
-                className="inline-flex items-center justify-center rounded-none border border-zinc-800 bg-zinc-900/50 px-6 py-4 font-bold text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors uppercase tracking-wider"
+                href="#materiales"
+                className="inline-flex items-center justify-center border border-zinc-300 px-7 py-4 text-sm font-semibold text-zinc-800 transition-colors hover:border-zinc-900"
               >
-                Ver placa de muestras
+                Ver materiales
               </a>
             </div>
-
-            <div className="mt-12 grid grid-cols-2 sm:grid-cols-3 gap-4 border-t border-zinc-900 pt-6 font-mono text-xs text-zinc-500">
-              <div>
-                <span className="text-zinc-300 block font-bold">MOPA 100W</span>
-                Ancho de pulso ajustable
-              </div>
-              <div>
-                <span className="text-zinc-300 block font-bold">Mecanizado CNC</span>
-                Integrado en la misma pieza
-              </div>
-              <div>
-                <span className="text-zinc-300 block font-bold">CUIT 30-71924978-3</span>
-                Factura A y alta corporativa
-              </div>
-            </div>
           </div>
 
-          {/* Macro fotográfico del haz láser en metal */}
-          <div className="lg:col-span-5 relative">
-            <div className="border border-zinc-800 bg-zinc-900/50 p-2 rounded-none">
-              <div className="relative aspect-[4/3] overflow-hidden bg-zinc-900">
-                <img
-                  src={FOTOS.hero}
-                  alt="Detalle macro de mecanizado y grabado de precisión industrial"
-                  className="w-full h-full object-cover filter contrast-125 brightness-90"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-80" />
-                <div className="absolute bottom-3 left-3 right-3 font-mono text-[10px] text-zinc-400 bg-zinc-950/90 px-3 py-2 border border-zinc-800 flex justify-between">
-                  <span>TECNOLOGÍA MOPA 100W</span>
-                  <span className="text-orange-500">PRECISIÓN EN MICRONES</span>
+          <div className="lg:col-span-6">
+            <div className="aspect-[4/3] overflow-hidden bg-zinc-100">
+              <Foto
+                src={FOTOS.hero}
+                alt="Láser grabando una pieza"
+                className="h-full w-full object-cover"
+                respaldo={<Muestra tipo="inox" />}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-zinc-200 bg-zinc-50">
+          <div className="mx-auto grid max-w-7xl grid-cols-2 px-4 sm:px-6 lg:grid-cols-4 lg:px-8">
+            {DATOS_CLAVE.map((d) => (
+              <div key={d.valor} className="py-6 pr-6">
+                <p className="font-mono text-lg font-semibold text-zinc-900">{d.valor}</p>
+                <p className="mt-1 text-xs leading-relaxed text-zinc-500">{d.texto}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 3. SERVICIOS */}
+      <section id="servicios" className="bg-white py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <EncabezadoSeccion
+            antetitulo="Qué hacemos"
+            titulo="Del plano a la pieza terminada"
+            texto="Grabamos y mecanizamos en nuestro taller de Pilar. Para los procesos que no hacemos internamente trabajamos con aliados estratégicos y coordinamos todo nosotros: un solo interlocutor, una sola cotización."
+          />
+          <div className="mt-14 grid gap-12 lg:grid-cols-2">
+            <GrupoServicios titulo="En nuestro taller" nota="Pilar, Buenos Aires" items={SERVICIOS_PROPIOS} />
+            <GrupoServicios titulo="Con nuestra red de aliados" nota="Coordinado por nosotros" items={SERVICIOS_ALIADOS} />
+          </div>
+        </div>
+      </section>
+
+      {/* 4. MATERIALES */}
+      <section id="materiales" className="border-y border-zinc-200 bg-zinc-50 py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <EncabezadoSeccion
+            antetitulo="Materiales y acabados"
+            titulo="Qué podemos grabar y mecanizar"
+            texto="El láser de fibra MOPA permite ajustar el pulso a cada material: marcado oscuro en inoxidable, colores, alto contraste en aluminio y grabado en piedra."
+          />
+          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {MATERIALES.map((m) => (
+              <article key={m.nombre} className="flex flex-col border border-zinc-200 bg-white">
+                <div className="aspect-[4/3] overflow-hidden">
+                  <Foto
+                    src={m.foto}
+                    alt={m.nombre}
+                    className="h-full w-full object-cover"
+                    respaldo={<Muestra tipo={m.muestra} />}
+                  />
                 </div>
-              </div>
-            </div>
+                <div className="flex flex-1 flex-col p-6">
+                  <h3 className="text-lg font-semibold text-zinc-900">{m.nombre}</h3>
+                  <p className="mt-1 text-sm font-medium text-orange-700">{m.resultado}</p>
+                  <p className="mt-3 flex-1 text-sm leading-relaxed text-zinc-600">{m.descripcion}</p>
+                  <p className="mt-5 border-t border-zinc-100 pt-4 text-xs text-zinc-500">{m.usos}</p>
+                </div>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* 3. FRANJA DE PRUEBA Y AUTORIDAD TÉCNICA */}
-      <section className="w-full border-b border-zinc-800 bg-zinc-900/30 py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl grid grid-cols-2 md:grid-cols-4 gap-6 font-mono text-center">
-          <div className="border-r border-zinc-800/60 last:border-0 pr-4">
-            <div className="text-xl sm:text-2xl font-bold text-white">100W MOPA</div>
-            <div className="text-[11px] text-zinc-400 uppercase mt-1">Potencia de fibra óptica</div>
-          </div>
-          <div className="border-r border-zinc-800/60 last:border-0 pr-4">
-            <div className="text-xl sm:text-2xl font-bold text-white">0% DESALINEACIÓN</div>
-            <div className="text-[11px] text-zinc-400 uppercase mt-1">Mecanizado + Grabado juntos</div>
-          </div>
-          <div className="border-r border-zinc-800/60 last:border-0 pr-4">
-            <div className="text-xl sm:text-2xl font-bold text-white">[±0,0X mm]</div>
-            <div className="text-[11px] text-zinc-400 uppercase mt-1">Tolerancia real en CNC</div>
-          </div>
-          <div>
-            <div className="text-xl sm:text-2xl font-bold text-white">PILAR, BS.AS.</div>
-            <div className="text-[11px] text-zinc-400 uppercase mt-1">Taller industrial propio</div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. QUÉ HACE EL MOPA (CAPACIDADES EN LENGUAJE DE COMPRADOR) */}
-      <section id="capacidades" className="w-full bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8 border-b border-zinc-800">
-        <div className="mx-auto max-w-7xl">
-          <div className="max-w-3xl mb-12">
-            <span className="font-mono text-xs text-orange-500 font-bold block mb-2 uppercase">Ventaja Tecnológica</span>
-            <h2 className="font-mono text-2xl sm:text-3xl font-bold uppercase text-white">
-              Capacidades del láser MOPA según tu necesidad técnica
-            </h2>
-            <p className="mt-3 text-sm text-zinc-400 font-sans leading-relaxed">
-              El ajuste de ancho de pulso del MOPA permite resolver requerimientos que un láser de fibra convencional no logra, 
-              garantizando ensayos de corrosión, abrasión y trazabilidad visual.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 font-mono">
-            <div className="border border-zinc-800 bg-zinc-900/20 p-6 rounded-none flex flex-col justify-between">
-              <div>
-                <div className="text-orange-500 font-bold text-xs mb-2">ACERO INOXIDABLE</div>
-                <h3 className="text-sm font-bold text-zinc-100 uppercase mb-2">Marcado oscuro sin remover material</h3>
-                <p className="text-xs text-zinc-400 font-sans leading-relaxed mb-4">
-                  Identificación molecular permanente (recocido) sin penetrar la capa pasivada ni afectar la resistencia a la corrosión.
-                </p>
-              </div>
-              <div className="text-[10px] text-zinc-500 uppercase border-t border-zinc-800 pt-3">
-                Industria: Farmacéutica, Alimentaria y Válvulas
-              </div>
-            </div>
-
-            <div className="border border-zinc-800 bg-zinc-900/20 p-6 rounded-none flex flex-col justify-between">
-              <div>
-                <div className="text-orange-500 font-bold text-xs mb-2">METALES EN GENERAL</div>
-                <h3 className="text-sm font-bold text-zinc-100 uppercase mb-2">Grabado profundo para intemperie</h3>
-                <p className="text-xs text-zinc-400 font-sans leading-relaxed mb-4">
-                  Surco micrométrico duradero que resiste abrasión severa, barro, lavado químico a presión y capas de pintura posterior.
-                </p>
-              </div>
-              <div className="text-[10px] text-zinc-500 uppercase border-t border-zinc-800 pt-3">
-                Industria: Oil & Gas, Minería e Infraestructura
-              </div>
-            </div>
-
-            <div className="border border-zinc-800 bg-zinc-900/20 p-6 rounded-none flex flex-col justify-between">
-              <div>
-                <div className="text-orange-500 font-bold text-xs mb-2">ALUMINIO ANODIZADO</div>
-                <h3 className="text-sm font-bold text-zinc-100 uppercase mb-2">Negro de alto contraste</h3>
-                <p className="text-xs text-zinc-400 font-sans leading-relaxed mb-4">
-                  Rotulación de altísima definición que contrasta nítidamente a varios metros de distancia en frentes de tablero y placas.
-                </p>
-              </div>
-              <div className="text-[10px] text-zinc-500 uppercase border-t border-zinc-800 pt-3">
-                Industria: Tableristas, Distribución Eléctrica
-              </div>
-            </div>
-
-            <div className="border border-zinc-800 bg-zinc-900/20 p-6 rounded-none flex flex-col justify-between">
-              <div>
-                <div className="text-orange-500 font-bold text-xs mb-2">PLÁSTICOS DE INGENIERÍA</div>
-                <h3 className="text-sm font-bold text-zinc-100 uppercase mb-2">Marcado sin quemar (Ablación fría)</h3>
-                <p className="text-xs text-zinc-400 font-sans leading-relaxed mb-4">
-                  Marcado limpio sin deformación térmica ni carbonización en polímeros como ABS, policarbonato y poliamidas.
-                </p>
-              </div>
-              <div className="text-[10px] text-zinc-500 uppercase border-t border-zinc-800 pt-3">
-                Industria: Gabinetes, Cajas estancas, Conectores
-              </div>
-            </div>
-
-            <div className="border border-zinc-800 bg-zinc-900/20 p-6 rounded-none flex flex-col justify-between">
-              <div>
-                <div className="text-orange-500 font-bold text-xs mb-2">CÓDIGOS 2D / TRAZABILIDAD</div>
-                <h3 className="text-sm font-bold text-zinc-100 uppercase mb-2">DataMatrix y Códigos QR legibles</h3>
-                <p className="text-xs text-zinc-400 font-sans leading-relaxed mb-4">
-                  Micro-códigos de lectura óptica de alta densidad para seguimiento de número de serie, lote y certificado de material.
-                </p>
-              </div>
-              <div className="text-[10px] text-zinc-500 uppercase border-t border-zinc-800 pt-3">
-                Industria: Trazabilidad total de componentes
-              </div>
-            </div>
-
-            <div className="border border-zinc-800 bg-zinc-900/20 p-6 rounded-none flex flex-col justify-between">
-              <div>
-                <div className="text-orange-500 font-bold text-xs mb-2">IDENTIFICACIÓN VISUAL</div>
-                <h3 className="text-sm font-bold text-zinc-100 uppercase mb-2">Marcado en Color sobre Inoxidable</h3>
-                <p className="text-xs text-zinc-400 font-sans leading-relaxed mb-4">
-                  Generación de capas de óxido de espesor controlado para codificación visual por color sin usar tintas ni solventes.
-                </p>
-              </div>
-              <div className="text-[10px] text-zinc-500 uppercase border-t border-zinc-800 pt-3">
-                Industria: Señalética técnica e instrumental
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. PRODUCTO ESTRELLA: FRENTES DE TABLERO LLAVE EN MANO */}
-      <section id="frentes" className="w-full bg-zinc-900/10 py-20 px-4 sm:px-6 lg:px-8 border-b border-zinc-800">
-        <div className="mx-auto max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      {/* 5. FRENTES DE TABLERO */}
+      <section id="frentes" className="bg-white py-24">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
           <div className="lg:col-span-7">
-            <span className="font-mono text-xs text-orange-500 font-bold block mb-2 uppercase">Integración CNC + LÁSER</span>
-            <h2 className="font-mono text-3xl font-bold uppercase text-white mb-6">
-              Frentes de tablero llave en mano
-            </h2>
-            <p className="text-base text-zinc-400 font-sans leading-relaxed">
-              Mecanizamos con CNC los orificios exactos para pulsadores, selectoras, displays y luces testigo, y grabamos la rotulación con láser en la misma pieza. 
-              Un solo proveedor, rotulación perfectamente alineada con cada orificio.
-            </p>
-            <div className="mt-6 border-l-2 border-orange-500 pl-4 py-1 text-sm text-zinc-400 font-sans leading-relaxed">
-              <strong>Cero desalineación y sin intermediarios:</strong> Evitás enviar la chapa a un taller para mecanizar y a otro para pintar o rotular. 
-              Nos enviás el esquema con los componentes y te entregamos el panel listo para montar en el gabinete.
-            </div>
-
-            <div className="mt-8 flex font-mono text-xs">
-              <a
-                href="#cotizar"
-                className="bg-orange-600 px-6 py-4 font-bold text-white hover:bg-orange-500 transition-colors uppercase"
-              >
-                Cotizar frentes de tablero
-              </a>
-            </div>
-          </div>
-
-          <div className="lg:col-span-5 space-y-4">
-            <div className="border border-zinc-800 bg-zinc-950 p-2 rounded-none">
-              <div className="relative aspect-video overflow-hidden bg-zinc-900">
-                <img
-                  src={FOTOS.frentes}
-                  alt="Detalle de mecanizado y frente de panel técnico"
-                  loading="lazy"
-                  className="w-full h-full object-cover filter contrast-125"
-                />
-              </div>
-            </div>
-
-            <div className="border border-zinc-800 bg-zinc-950 p-6 rounded-none font-mono text-xs">
-              <h3 className="text-zinc-200 font-bold uppercase mb-4 border-b border-zinc-800 pb-2">Especificaciones de Entrega</h3>
-              <ul className="space-y-3 text-zinc-400">
-                <li>
-                  <span className="text-zinc-200 block font-bold">Materiales Disponibles</span>
-                  Aluminio anodizado, acero inoxidable, policarbonato, acrílico, ABS [COMPLETAR: otros aptos].
-                </li>
-                <li>
-                  <span className="text-zinc-200 block font-bold">Área de Trabajo</span>
-                  CNC de [COMPLETAR: área CNC] mm · Láser de [COMPLETAR: área láser] mm.
-                </li>
-                <li>
-                  <span className="text-zinc-200 block font-bold">Insumo Requerido</span>
-                  Plano en DXF, DWG, PDF con cotas o croquis con la lista de elementos.
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. PLACA DE MUESTRAS / TRABAJOS REALIZADOS */}
-      <section id="muestras" className="w-full bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8 border-b border-zinc-800">
-        <div className="mx-auto max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-5 order-2 lg:order-1">
-            <div className="border border-zinc-800 bg-zinc-900/50 p-2 rounded-none">
-              <div className="relative aspect-square overflow-hidden bg-zinc-900">
-                <img
-                  src={FOTOS.muestras}
-                  alt="Placa patrón de pruebas sobre metal con parámetros de grabado"
-                  loading="lazy"
-                  className="w-full h-full object-cover filter contrast-125"
-                />
-                <div className="absolute inset-0 bg-black/40" />
-                <div className="absolute inset-0 flex items-center justify-center p-6 text-center font-mono">
-                  <div className="border border-orange-500/80 bg-zinc-950/90 p-4">
-                    <span className="text-orange-500 text-xs block font-bold">PATRÓN DE CALIBRACIÓN</span>
-                    <span className="text-white text-xs mt-1 block">Validación de pulso, contraste y frecuencia</span>
-                  </div>
+            <EncabezadoSeccion
+              antetitulo="Producto llave en mano"
+              titulo="Frentes de tablero mecanizados y rotulados"
+              texto="Mecanizamos con CNC los orificios para pulsadores, selectoras, displays y luces piloto, y grabamos la rotulación con láser en la misma pieza. Al hacer los dos procesos en el mismo taller, cada texto queda alineado con su orificio."
+            />
+            <dl className="mt-8 divide-y divide-zinc-200 border-y border-zinc-200 text-sm">
+              {FICHA_FRENTES.map(([dato, valor]) => (
+                <div key={dato} className="grid grid-cols-3 gap-4 py-3">
+                  <dt className="font-medium text-zinc-900">{dato}</dt>
+                  <dd className="col-span-2 text-zinc-600">{valor}</dd>
                 </div>
+              ))}
+            </dl>
+            <p className="mt-6 border-l-2 border-orange-600 pl-4 text-sm leading-relaxed text-zinc-600">
+              Entregamos el frente listo para montar. El armado eléctrico y el cableado quedan a cargo del tablerista.
+            </p>
+            <a
+              href="#cotizar"
+              className="mt-8 inline-flex bg-orange-600 px-7 py-4 text-sm font-semibold text-white transition-colors hover:bg-orange-700"
+            >
+              Cotizar frentes de tablero
+            </a>
+          </div>
+
+          <div className="lg:col-span-5">
+            <div className="aspect-square overflow-hidden bg-zinc-800 sm:aspect-[4/3]">
+              <Foto
+                src={FOTOS.frentes}
+                alt="Frente de tablero mecanizado y rotulado"
+                className="h-full w-full object-cover"
+                respaldo={<PanelFrente />}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. INDUSTRIA FUNERARIA */}
+      <section id="funeraria" className="border-y border-stone-200 bg-stone-50 py-24">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
+          <div className="lg:col-span-5">
+            <div className="aspect-[4/3] overflow-hidden bg-stone-200">
+              <Foto
+                src={FOTOS.funeraria}
+                alt="Placa de granito grabada"
+                className="h-full w-full object-cover"
+                respaldo={<Muestra tipo="piedra" />}
+              />
+            </div>
+          </div>
+
+          <div className="lg:col-span-7">
+            <EncabezadoSeccion
+              antetitulo="Industria funeraria"
+              titulo="Lápidas, placas y señalética en piedra y metal"
+              texto="Trabajamos para cementerios parque, casas velatorias y marmolerías. Grabamos y mecanizamos letras, fechas y símbolos en granito, mármol, acero inoxidable y aluminio, con terminación en pintura de alta calidad apta para exterior."
+            />
+            <ul className="mt-8 grid gap-3 sm:grid-cols-2">
+              {TRABAJOS_FUNERARIOS.map((t) => (
+                <li key={t} className="flex items-start gap-3 text-sm text-zinc-700">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 bg-orange-600" />
+                  {t}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-8 text-sm leading-relaxed text-zinc-600">
+              Hacemos piezas unitarias y series, con trato cuidadoso y plazos claros.
+            </p>
+            <a
+              href="#cotizar"
+              className="mt-8 inline-flex bg-zinc-900 px-7 py-4 text-sm font-semibold text-white transition-colors hover:bg-zinc-700"
+            >
+              Consultar por trabajos funerarios
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. INDUSTRIAS */}
+      <section id="industrias" className="bg-white py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <EncabezadoSeccion antetitulo="Sectores" titulo="Industrias a las que proveemos" />
+          <div className="mt-14 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+            {INDUSTRIAS.map((i) => (
+              <div key={i.titulo} className="border-t-2 border-zinc-900 pt-5">
+                <h3 className="text-lg font-semibold text-zinc-900">{i.titulo}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-600">{i.texto}</p>
               </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-7 order-1 lg:order-2">
-            <span className="font-mono text-xs text-orange-500 font-bold block mb-2 uppercase">Comprobación Física</span>
-            <h2 className="font-mono text-3xl font-bold uppercase text-white mb-6">
-              Placa de muestras y calibración real
-            </h2>
-            <p className="text-base text-zinc-400 font-sans leading-relaxed">
-              En la industria pesada una foto de render no alcanza. Fabricamos y calibramos placas testigo con matrices de grabado sobre los materiales 
-              exactos de tu proyecto: distintos anchos de pulso, potencias y frecuencias.
-            </p>
-            <p className="mt-4 text-sm text-zinc-400 font-sans leading-relaxed">
-              ¿Tenés un proyecto seriado o requerimientos de auditoría? Te enviamos una muestra física de grabado sobre tu propio material para que la verifiques 
-              en laboratorio o en planta antes de la corrida de producción.
-            </p>
-            <div className="mt-8">
-              <a
-                href="#cotizar"
-                className="inline-flex font-mono text-xs font-bold uppercase tracking-wider text-orange-500 hover:text-orange-400 border border-orange-500/40 px-6 py-4 hover:border-orange-500 transition-colors"
-              >
-                Solicitar muestra para evaluación
-              </a>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* 7. CÓMO TRABAJAMOS (4 PASOS) */}
-      <section id="proceso" className="w-full bg-zinc-900/10 py-20 px-4 sm:px-6 lg:px-8 border-b border-zinc-800">
-        <div className="mx-auto max-w-7xl">
-          <div className="max-w-2xl mb-12">
-            <span className="font-mono text-xs text-orange-500 font-bold block mb-2 uppercase">Flujo Técnico</span>
-            <h2 className="font-mono text-2xl sm:text-3xl font-bold uppercase text-white">
-              Cómo trabajamos
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 font-mono text-xs">
-            <div className="border border-zinc-800 bg-zinc-950 p-6 rounded-none">
-              <div className="text-orange-500 font-bold text-lg mb-2">01</div>
-              <h3 className="text-white font-bold uppercase mb-2">Envío del plano</h3>
-              <p className="text-zinc-400 font-sans leading-relaxed">
-                Envianos tu archivo en DXF, DWG, STEP o PDF con cotas. Si no tenés plano, una foto con las medidas principales.
-              </p>
-            </div>
-
-            <div className="border border-zinc-800 bg-zinc-950 p-6 rounded-none">
-              <div className="text-orange-500 font-bold text-lg mb-2">02</div>
-              <h3 className="text-white font-bold uppercase mb-2">Cotización formal</h3>
-              <p className="text-zinc-400 font-sans leading-relaxed">
-                Te presupuestamos en [COMPLETAR: plazo real, ej: 24 hs] con presupuesto formal, plazo de entrega y condiciones comerciales.
-              </p>
-            </div>
-
-            <div className="border border-zinc-800 bg-zinc-950 p-6 rounded-none">
-              <div className="text-orange-500 font-bold text-lg mb-2">03</div>
-              <h3 className="text-white font-bold uppercase mb-2">Fabricación y avance</h3>
-              <p className="text-zinc-400 font-sans leading-relaxed">
-                Mecanizamos y grabamos en nuestro taller de Pilar. Te mostramos el avance técnico de la primera pieza antes de la serie.
-              </p>
-            </div>
-
-            <div className="border border-zinc-800 bg-zinc-950 p-6 rounded-none">
-              <div className="text-orange-500 font-bold text-lg mb-2">04</div>
-              <h3 className="text-white font-bold uppercase mb-2">Entrega y despacho</h3>
-              <p className="text-zinc-400 font-sans leading-relaxed">
-                Entregamos o despachamos a [COMPLETAR: zonas reales de despacho y entrega] con embalaje de protección técnica.
-              </p>
-            </div>
-          </div>
+      {/* 8. CÓMO TRABAJAMOS */}
+      <section id="proceso" className="border-y border-zinc-200 bg-zinc-50 py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <EncabezadoSeccion antetitulo="Proceso" titulo="Cómo trabajamos" />
+          <ol className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {PASOS.map((p) => (
+              <li key={p.numero} className="border border-zinc-200 bg-white p-6">
+                <span className="font-mono text-sm font-semibold text-orange-700">{p.numero}</span>
+                <h3 className="mt-3 text-lg font-semibold text-zinc-900">{p.titulo}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-600">{p.texto}</p>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 
-      {/* 8. INDUSTRIAS OBJETIVO */}
-      <section id="industrias" className="w-full bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8 border-b border-zinc-800">
-        <div className="mx-auto max-w-7xl">
-          <div className="max-w-2xl mb-12">
-            <span className="font-mono text-xs text-orange-500 font-bold block mb-2 uppercase">Sectores Clave</span>
-            <h2 className="font-mono text-2xl sm:text-3xl font-bold uppercase text-white">
-              Industrias a las que proveemos
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 font-mono text-xs">
-            <div className="border border-zinc-800 bg-zinc-900/10 p-6 rounded-none">
-              <div className="text-orange-500 font-bold mb-2">OIL & GAS</div>
-              <h3 className="text-white font-bold uppercase mb-2 text-sm">Exploración y Cuencas</h3>
-              <p className="text-zinc-400 font-sans leading-relaxed">
-                Grabado profundo en bridas, válvulas, cupones de corrosión y placas de identificación de equipos de superficie.
-              </p>
-            </div>
-
-            <div className="border border-zinc-800 bg-zinc-900/10 p-6 rounded-none">
-              <div className="text-orange-500 font-bold mb-2">TABLERISTAS Y ENERGÍA</div>
-              <h3 className="text-white font-bold uppercase mb-2 text-sm">Frentes e Integradores</h3>
-              <p className="text-zinc-400 font-sans leading-relaxed">
-                Frentes de tablero completos, placas de advertencia de seguridad eléctrica y sinópticos de distribución.
-              </p>
-            </div>
-
-            <div className="border border-zinc-800 bg-zinc-900/10 p-6 rounded-none">
-              <div className="text-orange-500 font-bold mb-2">MINERÍA</div>
-              <h3 className="text-white font-bold uppercase mb-2 text-sm">Ambientes Abrasivos</h3>
-              <p className="text-zinc-400 font-sans leading-relaxed">
-                Rotulación indestructible para ambientes con polvillo, vibración constante y exposición a reactivos.
-              </p>
-            </div>
-
-            <div className="border border-zinc-800 bg-zinc-900/10 p-6 rounded-none">
-              <div className="text-orange-500 font-bold mb-2">FARMACÉUTICA Y PROCESOS</div>
-              <h3 className="text-white font-bold uppercase mb-2 text-sm">Acero Sanitario</h3>
-              <p className="text-zinc-400 font-sans leading-relaxed">
-                Marcado oscuro sin remoción sobre acero AISI 316L, apto para protocolos CIP/SIP y ambientes limpios.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 9. OTROS SERVICIOS COMPLEMENTARIOS */}
-      <section id="servicios" className="w-full bg-zinc-900/10 py-20 px-4 sm:px-6 lg:px-8 border-b border-zinc-800">
-        <div className="mx-auto max-w-7xl">
-          <span className="font-mono text-xs text-orange-500 font-bold block mb-2 uppercase">Servicios Complementarios</span>
-          <h2 className="font-mono text-2xl sm:text-3xl font-bold uppercase text-white mb-8">
-            CNC y Soldadura de Termoplásticos
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 font-mono">
-            <div className="border border-zinc-800 p-6 rounded-none bg-zinc-950">
-              <div className="text-orange-500 font-bold text-xs mb-2">MECANIZADO INDUSTRIAL</div>
-              <h3 className="text-base font-bold text-zinc-100 uppercase mb-3">Mecanizado CNC</h3>
-              <p className="text-xs text-zinc-400 font-sans leading-relaxed mb-4">
-                Ruteo y fresado CNC con tolerancias de [±0,0X mm] en plásticos de ingeniería (POM, PEAD, Grilon, ABS) y aluminio. Desarrollo de piezas complejas, utillajes y matrices.
-              </p>
-              <ul className="text-zinc-400 text-xs space-y-1">
-                <li>• Tolerancia real: [±0,0X mm]</li>
-                <li>• Plásticos técnicos y metales no ferrosos</li>
-                <li>• Prototipos y corridas cortas de piezas</li>
-              </ul>
-            </div>
-
-            <div className="border border-zinc-800 p-6 rounded-none bg-zinc-950">
-              <div className="text-orange-500 font-bold text-xs mb-2">SOLDADURA PLÁSTICA</div>
-              <h3 className="text-base font-bold text-zinc-100 uppercase mb-3">Soldadura de Termoplásticos</h3>
-              <p className="text-xs text-zinc-400 font-sans leading-relaxed mb-4">
-                Fabricación y ensamble de piezas especiales, depósitos y tuberías mediante soldadura plástica por extrusión. Solución óptima para fluidos agresivos o corrosivos y estrés mecánico.
-              </p>
-              <ul className="text-zinc-400 text-xs space-y-1">
-                <li>• Ensamble y estanqueidad técnica</li>
-                <li>• Polímeros de alta resistencia (PEAD, PP)</li>
-                <li>• Apto para industrias química y de procesos</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 10. FORMULARIO DE COTIZACIÓN */}
-      <section id="cotizar" className="w-full bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl">
-          <div className="border border-zinc-800 bg-zinc-900/40 p-6 sm:p-10 rounded-none">
-            <div className="border-b border-zinc-800 pb-6 mb-8">
-              <span className="font-mono text-xs uppercase tracking-wider text-orange-500 font-bold block mb-2">
-                Ingeniería y Presupuestos
-              </span>
-              <h2 className="font-mono text-2xl sm:text-3xl font-bold text-white uppercase">
-                ¿Tenés un plano? Te lo cotizamos.
-              </h2>
-              <p className="mt-2 text-sm text-zinc-400 font-sans">
-                Adjuntá tu archivo en PDF, DXF, DWG o STEP. Si no tenés plano formal, mandanos una foto y las medidas generales de la pieza.
-              </p>
-            </div>
-
-            {estado === 'ok' ? (
-              <div className="border border-orange-500 bg-orange-950/20 p-6 text-center rounded-none font-mono">
-                <h3 className="text-orange-500 font-bold text-lg mb-2">¡SOLICITUD ENVIADA CON ÉXITO!</h3>
-                <p className="text-xs text-zinc-300">
-                  Recibimos tu solicitud. Nos comunicamos a la brevedad con la cotización formal con membrete.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setEstado('idle')}
-                  className="mt-4 text-xs underline text-orange-500 hover:text-orange-400 focus:outline-none"
+      {/* 9. COTIZACIÓN */}
+      <section id="cotizar" className="bg-white py-24">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
+          <div className="lg:col-span-4">
+            <EncabezadoSeccion
+              antetitulo="Presupuestos"
+              titulo="¿Tenés un plano? Te lo cotizamos."
+              texto="Adjuntá tu archivo en PDF, DXF, DWG o STEP. Si no tenés plano formal, mandanos una foto con las medidas generales de la pieza."
+            />
+            <div className="mt-8 space-y-5 border-t border-zinc-200 pt-8 text-sm text-zinc-600">
+              <p>
+                <span className="block font-medium text-zinc-900">WhatsApp</span>
+                <a
+                  href={`https://wa.me/${WHATSAPP_NUMERO}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-orange-700"
                 >
-                  Enviar otra solicitud
-                </button>
-              </div>
-            ) : (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void enviarFormulario(e.currentTarget);
-                }}
-                className="space-y-6"
-              >
-                {/* Campo trampa anti-spam */}
-                <div className="hidden" aria-hidden="true">
-                  <label htmlFor="f-website">No completar este campo</label>
-                  <input type="text" id="f-website" name="website" tabIndex={-1} autoComplete="off" />
-                </div>
+                  {WHATSAPP_VISIBLE}
+                </a>
+              </p>
+              <p>
+                <span className="block font-medium text-zinc-900">Correo</span>
+                <a href={`mailto:${CORREO}`} className="hover:text-orange-700">
+                  {CORREO}
+                </a>
+              </p>
+              <p>
+                <span className="block font-medium text-zinc-900">Horario</span>
+                Lunes a viernes de 08:00 a 18:00 hs
+              </p>
+            </div>
+          </div>
 
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div>
-                    <label htmlFor="f-nombre" className="block font-mono text-xs uppercase text-zinc-300 mb-2">
-                      Nombre y Apellido *
-                    </label>
-                    <input
-                      type="text"
-                      id="f-nombre"
-                      name="nombre"
-                      required
-                      maxLength={120}
-                      autoComplete="name"
-                      placeholder="Tu nombre completo"
-                      className="w-full rounded-none border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-orange-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="f-empresa" className="block font-mono text-xs uppercase text-zinc-300 mb-2">
-                      Empresa *
-                    </label>
-                    <input
-                      type="text"
-                      id="f-empresa"
-                      name="empresa"
-                      required
-                      maxLength={120}
-                      autoComplete="organization"
-                      placeholder="Razón social o empresa"
-                      className="w-full rounded-none border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-orange-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="f-cargo" className="block font-mono text-xs uppercase text-zinc-300 mb-2">
-                      Cargo / Área
-                    </label>
-                    <input
-                      type="text"
-                      id="f-cargo"
-                      name="cargo"
-                      maxLength={120}
-                      autoComplete="organization-title"
-                      placeholder="Ej: Compras, Ingeniería, Mantenimiento"
-                      className="w-full rounded-none border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-orange-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="f-email" className="block font-mono text-xs uppercase text-zinc-300 mb-2">
-                      Correo Corporativo *
-                    </label>
-                    <input
-                      type="email"
-                      id="f-email"
-                      name="email"
-                      required
-                      maxLength={160}
-                      autoComplete="email"
-                      placeholder="nombre@empresa.com"
-                      className="w-full rounded-none border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-orange-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="f-telefono" className="block font-mono text-xs uppercase text-zinc-300 mb-2">
-                      Teléfono / WhatsApp *
-                    </label>
-                    <input
-                      type="tel"
-                      id="f-telefono"
-                      name="telefono"
-                      required
-                      maxLength={60}
-                      autoComplete="tel"
-                      placeholder="+54 9 ..."
-                      className="w-full rounded-none border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-orange-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="f-ubicacion" className="block font-mono text-xs uppercase text-zinc-300 mb-2">
-                      País / Provincia *
-                    </label>
-                    <input
-                      type="text"
-                      id="f-ubicacion"
-                      name="ubicacion"
-                      required
-                      maxLength={120}
-                      defaultValue="Argentina"
-                      className="w-full rounded-none border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-100 focus:border-orange-500 focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-                  <div>
-                    <label htmlFor="f-servicio" className="block font-mono text-xs uppercase text-zinc-300 mb-2">
-                      Servicio Requerido *
-                    </label>
-                    <select
-                      id="f-servicio"
-                      name="servicio"
-                      required
-                      className="w-full rounded-none border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-100 focus:border-orange-500 focus:outline-none"
-                    >
-                      <option value="laser-mopa">Grabado Láser MOPA 100W</option>
-                      <option value="frentes-tablero">Frentes de Tablero (Láser + CNC)</option>
-                      <option value="mecanizado-cnc">Mecanizado CNC (Ruteo / Fresado)</option>
-                      <option value="soldadura-plastica">Soldadura de Termoplásticos</option>
-                      <option value="otro">Desarrollo Integral / Otro</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label htmlFor="f-material" className="block font-mono text-xs uppercase text-zinc-300 mb-2">
-                      Material de la Pieza
-                    </label>
-                    <input
-                      type="text"
-                      id="f-material"
-                      name="material"
-                      maxLength={160}
-                      placeholder="Ej: Acero AISI 316, Aluminio, ABS"
-                      className="w-full rounded-none border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-orange-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="f-cantidad" className="block font-mono text-xs uppercase text-zinc-300 mb-2">
-                      Cantidad Estimada
-                    </label>
-                    <input
-                      type="text"
-                      id="f-cantidad"
-                      name="cantidad"
-                      maxLength={160}
-                      placeholder="Ej: 1 prototipo / 500 piezas"
-                      className="w-full rounded-none border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-orange-500 focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="f-plazo" className="block font-mono text-xs uppercase text-zinc-300 mb-2">
-                    Plazo Deseado de Entrega
-                  </label>
-                  <input
-                    type="text"
-                    id="f-plazo"
-                    name="plazo"
-                    maxLength={160}
-                    placeholder="Ej: Urgente / 48 hs / [COMPLETAR: plazo estimado]"
-                    className="w-full rounded-none border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-orange-500 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-mono text-xs uppercase text-zinc-300 mb-2">
-                    Adjuntar Plano Técnico o Esquema (PDF, DXF, DWG, STEP, JPG, PNG)
-                  </label>
-                  <div className="border border-dashed border-zinc-800 bg-zinc-950/60 p-6 text-center hover:border-orange-500/50 transition-colors">
-                    <input
-                      type="file"
-                      id="file-upload"
-                      name="archivos"
-                      multiple
-                      accept=".pdf,.dxf,.dwg,.step,.stp,.png,.jpg,.jpeg"
-                      onChange={(e) => setArchivos(e.target.files)}
-                      className="hidden"
-                    />
-                    <label
-                      htmlFor="file-upload"
-                      className="cursor-pointer font-mono text-xs text-orange-500 hover:text-orange-400 block font-bold"
-                    >
-                      SELECCIONAR ARCHIVOS DEL DISPOSITIVO
-                    </label>
-                    <span className={`font-mono text-xs mt-2 block ${excedeLimite ? 'text-red-400' : 'text-zinc-500'}`}>
-                      {archivos && archivos.length > 0
-                        ? `${archivos.length} archivo(s) seleccionado(s) · ${formatearPeso(pesoArchivos)}${
-                            excedeLimite ? ` — supera el máximo de ${LIMITE_MB} MB` : ''
-                          }`
-                        : 'Formatos soportados: 2D vector, modelos 3D y capturas con cotas'}
-                    </span>
-                    <span className="font-mono text-[10px] text-zinc-600 mt-1 block">
-                      Máximo {LIMITE_MB} MB en total. Archivos más pesados: envialos a adm.npsolutions@gmail.com
-                    </span>
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="f-mensaje" className="block font-mono text-xs uppercase text-zinc-300 mb-2">
-                    Mensaje o Especificaciones Técnicas
-                  </label>
-                  <textarea
-                    id="f-mensaje"
-                    name="mensaje"
-                    rows={4}
-                    maxLength={5000}
-                    placeholder="Detallá tolerancias requeridas, tipo de rotulación, profundidad o condiciones de uso..."
-                    className="w-full rounded-none border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 focus:border-orange-500 focus:outline-none"
-                  />
-                </div>
-
-                {estado === 'error' && errorEnvio && (
-                  <div
-                    role="alert"
-                    className="border border-red-500/50 bg-red-950/20 p-4 rounded-none font-mono text-xs text-red-300"
-                  >
-                    {errorEnvio}
-                    <span className="block mt-2 text-zinc-400">
-                      Si el problema sigue, escribinos por WhatsApp o a adm.npsolutions@gmail.com.
-                    </span>
-                  </div>
-                )}
-
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-zinc-900">
-                  <span className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">
-                    Respuesta técnica y comercial formal con membrete.
-                  </span>
+          <div className="lg:col-span-8">
+            <div className="border border-zinc-200 bg-zinc-50 p-6 sm:p-10">
+              {estado === 'ok' ? (
+                <div className="border border-emerald-600 bg-emerald-50 p-8 text-center">
+                  <h3 className="text-xl font-semibold text-emerald-900">Solicitud enviada</h3>
+                  <p className="mt-2 text-sm text-emerald-800">
+                    Recibimos tu solicitud. Te respondemos a la brevedad con una cotización formal.
+                  </p>
                   <button
-                    type="submit"
-                    disabled={estado === 'enviando'}
-                    className="w-full sm:w-auto rounded-none bg-orange-600 px-8 py-4 font-mono text-xs font-bold uppercase tracking-wider text-white hover:bg-orange-500 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                    type="button"
+                    onClick={() => setEstado('idle')}
+                    className="mt-6 text-sm font-semibold text-emerald-800 underline underline-offset-4 hover:text-emerald-950"
                   >
-                    {estado === 'enviando' ? 'Enviando...' : 'Enviar Solicitud de Cotización'}
+                    Enviar otra solicitud
                   </button>
                 </div>
-              </form>
-            )}
+              ) : (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void enviarFormulario(e.currentTarget);
+                  }}
+                  className="space-y-6"
+                >
+                  {/* Campo trampa anti-spam */}
+                  <div className="hidden" aria-hidden="true">
+                    <label htmlFor="f-website">No completar este campo</label>
+                    <input type="text" id="f-website" name="website" tabIndex={-1} autoComplete="off" />
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="f-nombre" className={CLASE_ETIQUETA}>
+                        Nombre y apellido *
+                      </label>
+                      <input
+                        type="text"
+                        id="f-nombre"
+                        name="nombre"
+                        required
+                        maxLength={120}
+                        autoComplete="name"
+                        placeholder="Tu nombre completo"
+                        className={CLASE_CAMPO}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="f-empresa" className={CLASE_ETIQUETA}>
+                        Empresa *
+                      </label>
+                      <input
+                        type="text"
+                        id="f-empresa"
+                        name="empresa"
+                        required
+                        maxLength={120}
+                        autoComplete="organization"
+                        placeholder="Razón social o empresa"
+                        className={CLASE_CAMPO}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="f-cargo" className={CLASE_ETIQUETA}>
+                        Cargo / área
+                      </label>
+                      <input
+                        type="text"
+                        id="f-cargo"
+                        name="cargo"
+                        maxLength={120}
+                        autoComplete="organization-title"
+                        placeholder="Ej: Compras, Ingeniería, Mantenimiento"
+                        className={CLASE_CAMPO}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="f-email" className={CLASE_ETIQUETA}>
+                        Correo electrónico *
+                      </label>
+                      <input
+                        type="email"
+                        id="f-email"
+                        name="email"
+                        required
+                        maxLength={160}
+                        autoComplete="email"
+                        placeholder="nombre@empresa.com"
+                        className={CLASE_CAMPO}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="f-telefono" className={CLASE_ETIQUETA}>
+                        Teléfono / WhatsApp *
+                      </label>
+                      <input
+                        type="tel"
+                        id="f-telefono"
+                        name="telefono"
+                        required
+                        maxLength={60}
+                        autoComplete="tel"
+                        placeholder="+54 9 ..."
+                        className={CLASE_CAMPO}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="f-ubicacion" className={CLASE_ETIQUETA}>
+                        País / provincia *
+                      </label>
+                      <input
+                        type="text"
+                        id="f-ubicacion"
+                        name="ubicacion"
+                        required
+                        maxLength={120}
+                        defaultValue="Argentina"
+                        className={CLASE_CAMPO}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                    <div>
+                      <label htmlFor="f-servicio" className={CLASE_ETIQUETA}>
+                        Servicio *
+                      </label>
+                      <select id="f-servicio" name="servicio" required className={CLASE_CAMPO}>
+                        <option value="Grabado y marcado láser">Grabado y marcado láser</option>
+                        <option value="Frentes de tablero">Frentes de tablero</option>
+                        <option value="Mecanizado CNC">Mecanizado CNC</option>
+                        <option value="Industria funeraria (piedra y placas)">Industria funeraria</option>
+                        <option value="Fabricación integral (corte, plegado, torneado, pintura)">
+                          Fabricación integral
+                        </option>
+                        <option value="Otro">Otro</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label htmlFor="f-material" className={CLASE_ETIQUETA}>
+                        Material
+                      </label>
+                      <input
+                        type="text"
+                        id="f-material"
+                        name="material"
+                        maxLength={160}
+                        placeholder="Ej: Inoxidable, aluminio, granito"
+                        className={CLASE_CAMPO}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="f-cantidad" className={CLASE_ETIQUETA}>
+                        Cantidad estimada
+                      </label>
+                      <input
+                        type="text"
+                        id="f-cantidad"
+                        name="cantidad"
+                        maxLength={160}
+                        placeholder="Ej: 1 prototipo / 500 piezas"
+                        className={CLASE_CAMPO}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="f-plazo" className={CLASE_ETIQUETA}>
+                      Plazo deseado de entrega
+                    </label>
+                    <input
+                      type="text"
+                      id="f-plazo"
+                      name="plazo"
+                      maxLength={160}
+                      placeholder="Ej: Urgente / 1 semana / sin apuro"
+                      className={CLASE_CAMPO}
+                    />
+                  </div>
+
+                  <div>
+                    <span className={CLASE_ETIQUETA}>Plano, esquema o foto (PDF, DXF, DWG, STEP, JPG, PNG)</span>
+                    <div className="border border-dashed border-zinc-300 bg-white p-6 text-center transition-colors hover:border-orange-600">
+                      <input
+                        type="file"
+                        id="file-upload"
+                        name="archivos"
+                        multiple
+                        accept=".pdf,.dxf,.dwg,.step,.stp,.png,.jpg,.jpeg"
+                        onChange={(e) => setArchivos(e.target.files)}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="file-upload"
+                        className="cursor-pointer text-sm font-semibold text-orange-700 hover:text-orange-800"
+                      >
+                        Seleccionar archivos
+                      </label>
+                      <span className={`mt-2 block text-sm ${excedeLimite ? 'text-red-600' : 'text-zinc-500'}`}>
+                        {archivos && archivos.length > 0
+                          ? `${archivos.length} archivo(s) seleccionado(s) · ${formatearPeso(pesoArchivos)}${
+                              excedeLimite ? ` — supera el máximo de ${LIMITE_MB} MB` : ''
+                            }`
+                          : 'Planos 2D, modelos 3D o fotos con medidas'}
+                      </span>
+                      <span className="mt-1 block text-xs text-zinc-400">
+                        Máximo {LIMITE_MB} MB en total. Archivos más pesados: envialos a {CORREO}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="f-mensaje" className={CLASE_ETIQUETA}>
+                      Mensaje o especificaciones técnicas
+                    </label>
+                    <textarea
+                      id="f-mensaje"
+                      name="mensaje"
+                      rows={4}
+                      maxLength={5000}
+                      placeholder="Detallá tolerancias, tipo de grabado, terminación o condiciones de uso..."
+                      className={CLASE_CAMPO}
+                    />
+                  </div>
+
+                  {estado === 'error' && errorEnvio && (
+                    <div role="alert" className="border border-red-300 bg-red-50 p-4 text-sm text-red-800">
+                      {errorEnvio}
+                      <span className="mt-2 block text-red-700">
+                        Si el problema sigue, escribinos por WhatsApp o a {CORREO}.
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col items-center justify-between gap-4 border-t border-zinc-200 pt-6 sm:flex-row">
+                    <span className="text-xs text-zinc-500">Respondemos con una cotización formal.</span>
+                    <button
+                      type="submit"
+                      disabled={estado === 'enviando'}
+                      className="w-full bg-orange-600 px-8 py-4 text-sm font-semibold text-white transition-colors hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                    >
+                      {estado === 'enviando' ? 'Enviando...' : 'Enviar solicitud de cotización'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* 11. FOOTER */}
-      <footer className="w-full border-t border-zinc-900 bg-zinc-950 py-12 px-4 sm:px-6 lg:px-8 font-mono text-xs text-zinc-400 mt-auto">
-        <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-4 gap-8">
+      {/* 10. PIE DE PÁGINA */}
+      <footer className="mt-auto bg-zinc-900 text-sm text-zinc-400">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-4 lg:px-8">
           <div>
-            <div className="flex items-center gap-2 text-white font-bold mb-3">
-              <span className="text-orange-500">[NP]</span> NP SOLUTIONS
-            </div>
-            <p className="text-zinc-500 font-sans text-xs leading-relaxed">
-              Marcado láser de fibra MOPA 100W, frentes de tablero llave en mano, mecanizado CNC y soldadura de termoplásticos de ingeniería.
+            <Logo claro />
+            <p className="mt-4 leading-relaxed">
+              Grabado láser, mecanizado CNC y fabricación integral con aliados estratégicos.
             </p>
-            <div className="mt-4 text-zinc-300">
-              CUIT: <span className="text-white">30-71924978-3</span>
-            </div>
+            <p className="mt-4">
+              CUIT <span className="text-zinc-200">30-71924978-3</span>
+            </p>
           </div>
 
           <div>
-            <div className="text-zinc-200 font-bold uppercase mb-3">Taller y Operaciones</div>
-            <p className="text-zinc-400">Pilar, Buenos Aires, Argentina</p>
-            <p className="text-zinc-500 mt-2">Lunes a Viernes: 08:00 a 18:00 hs</p>
+            <h3 className="font-semibold text-white">Taller</h3>
+            <p className="mt-3">Pilar, Buenos Aires, Argentina</p>
+            <p className="mt-1">Lunes a viernes de 08:00 a 18:00 hs</p>
           </div>
 
           <div>
-            <div className="text-zinc-200 font-bold uppercase mb-3">Contacto Directo</div>
-            <p>
+            <h3 className="font-semibold text-white">Contacto</h3>
+            <p className="mt-3">
               WhatsApp:{' '}
               <a
                 href={`https://wa.me/${WHATSAPP_NUMERO}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-orange-500 hover:underline"
+                className="text-zinc-200 hover:text-white"
               >
-                +54 9 2304 30-2622
+                {WHATSAPP_VISIBLE}
               </a>
             </p>
-            <p className="mt-2">
+            <p className="mt-1 break-all">
               Correo:{' '}
-              <a
-                href="mailto:adm.npsolutions@gmail.com"
-                className="text-zinc-300 hover:underline"
-              >
-                adm.npsolutions@gmail.com
+              <a href={`mailto:${CORREO}`} className="text-zinc-200 hover:text-white">
+                {CORREO}
               </a>
             </p>
           </div>
 
           <div>
-            <div className="text-zinc-200 font-bold uppercase mb-3">Industrias Objetivo</div>
-            <ul className="space-y-1 text-zinc-500">
-              <li>Oil & Gas y Minería</li>
-              <li>Energía y Tableristas</li>
-              <li>Industria Farmacéutica</li>
-              <li>Alimentos y Bebidas</li>
+            <h3 className="font-semibold text-white">Industrias</h3>
+            <ul className="mt-3 space-y-1">
+              {INDUSTRIAS.map((i) => (
+                <li key={i.titulo}>{i.titulo}</li>
+              ))}
             </ul>
           </div>
         </div>
 
-        <div className="mx-auto max-w-7xl mt-12 pt-6 border-t border-zinc-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-zinc-600">
-          <div>
-            © <AnioActual /> NP Solutions. Todos los derechos reservados.
-          </div>
-          <div>
-            Pilar · Buenos Aires · República Argentina
+        <div className="border-t border-zinc-800">
+          <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-6 text-xs text-zinc-500 sm:flex-row sm:justify-between sm:px-6 lg:px-8">
+            <p>
+              © <AnioActual /> NP Solutions. Todos los derechos reservados.
+            </p>
+            <p>Pilar · Buenos Aires · República Argentina</p>
           </div>
         </div>
       </footer>
 
-      {/* 12. BURBUJA DE WHATSAPP */}
+      {/* 11. BURBUJA DE WHATSAPP */}
       <WhatsAppWidget />
+    </div>
+  );
+}
+
+/* ───────────────────────── COMPONENTES ───────────────────────── */
+
+function Logo({ claro = false }: { claro?: boolean }) {
+  return (
+    <a href="#" className="flex items-center gap-3">
+      <span className="flex h-9 w-9 items-center justify-center bg-orange-600 text-sm font-bold tracking-tight text-white">
+        NP
+      </span>
+      <span className="leading-tight">
+        <span className={`block text-base font-semibold tracking-tight ${claro ? 'text-white' : 'text-zinc-900'}`}>
+          NP Solutions
+        </span>
+        <span className={`block text-xs ${claro ? 'text-zinc-400' : 'text-zinc-500'}`}>
+          Grabado · Mecanizado · Fabricación
+        </span>
+      </span>
+    </a>
+  );
+}
+
+function EncabezadoSeccion({ antetitulo, titulo, texto }: { antetitulo: string; titulo: string; texto?: string }) {
+  return (
+    <div className="max-w-3xl">
+      <p className="flex items-center gap-3 text-sm font-semibold text-orange-700">
+        <span className="h-px w-8 bg-orange-600" />
+        {antetitulo}
+      </p>
+      <h2 className="mt-4 text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">{titulo}</h2>
+      {texto && <p className="mt-4 text-lg leading-relaxed text-zinc-600">{texto}</p>}
+    </div>
+  );
+}
+
+function GrupoServicios({
+  titulo,
+  nota,
+  items,
+}: {
+  titulo: string;
+  nota: string;
+  items: Array<{ titulo: string; texto: string }>;
+}) {
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-4 border-b-2 border-zinc-900 pb-3">
+        <h3 className="text-lg font-semibold text-zinc-900">{titulo}</h3>
+        <span className="text-xs text-zinc-500">{nota}</span>
+      </div>
+      <ul className="divide-y divide-zinc-200">
+        {items.map((s) => (
+          <li key={s.titulo} className="py-5">
+            <h4 className="font-semibold text-zinc-900">{s.titulo}</h4>
+            <p className="mt-1 text-sm leading-relaxed text-zinc-600">{s.texto}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// Muestra la foto; si no hay foto o no carga, muestra el respaldo gráfico.
+function Foto({
+  src,
+  alt,
+  className,
+  respaldo,
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+  respaldo: ReactNode;
+}) {
+  const [fallo, setFallo] = useState(false);
+  const ref = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    const img = ref.current;
+    if (img && img.complete && img.naturalWidth === 0) setFallo(true);
+  }, [src]);
+
+  if (!src || fallo) return <>{respaldo}</>;
+
+  return <img ref={ref} src={src} alt={alt} onError={() => setFallo(true)} className={className} />;
+}
+
+const FONDO_INOX: CSSProperties = {
+  backgroundImage:
+    'repeating-linear-gradient(90deg, rgba(255,255,255,0.12) 0px, rgba(255,255,255,0.12) 1px, rgba(0,0,0,0.04) 1px, rgba(0,0,0,0.04) 3px), linear-gradient(160deg, #e4e4e7 0%, #a1a1aa 40%, #d4d4d8 65%, #a1a1aa 100%)',
+};
+
+const FONDO_ANODIZADO: CSSProperties = {
+  backgroundImage: 'linear-gradient(150deg, #3f3f46 0%, #18181b 55%, #27272a 100%)',
+};
+
+const FONDO_GRANITO: CSSProperties = {
+  backgroundColor: '#1c1917',
+  backgroundImage:
+    'radial-gradient(rgba(255,255,255,0.22) 0.8px, transparent 1.3px), radial-gradient(rgba(214,211,209,0.14) 1px, transparent 1.7px), radial-gradient(rgba(120,113,108,0.4) 1.5px, transparent 2.6px), linear-gradient(150deg, #292524, #0c0a09)',
+  backgroundSize: '9px 9px, 17px 17px, 23px 23px, 100% 100%',
+  backgroundPosition: '0 0, 4px 7px, 11px 3px, 0 0',
+};
+
+const TEXTO_METAL: CSSProperties = {
+  backgroundImage: 'linear-gradient(180deg, #fafafa, #a1a1aa)',
+  WebkitBackgroundClip: 'text',
+  backgroundClip: 'text',
+  color: 'transparent',
+};
+
+const TEXTO_COLOR: CSSProperties = {
+  backgroundImage: 'linear-gradient(90deg, #b8860b, #9333ea, #2563eb, #0e7490)',
+  WebkitBackgroundClip: 'text',
+  backgroundClip: 'text',
+  color: 'transparent',
+};
+
+// Muestras gráficas del resultado sobre cada material.
+function Muestra({ tipo }: { tipo: TipoMuestra }) {
+  const base = 'flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center';
+
+  if (tipo === 'inox') {
+    return (
+      <div className={base} style={FONDO_INOX}>
+        <span className="font-mono text-xl font-bold tracking-[0.2em] text-zinc-800 sm:text-2xl">AISI 316L</span>
+        <span className="font-mono text-xs tracking-[0.3em] text-zinc-700">S/N 0417-26 · LOTE A12</span>
+      </div>
+    );
+  }
+
+  if (tipo === 'color') {
+    return (
+      <div className={base} style={FONDO_INOX}>
+        <span className="font-mono text-xl font-bold tracking-[0.2em] sm:text-2xl" style={TEXTO_COLOR}>
+          COLOR MOPA
+        </span>
+        <div className="flex gap-2">
+          {['#b8860b', '#a16207', '#9333ea', '#2563eb', '#0e7490'].map((c) => (
+            <span key={c} className="h-6 w-6 border border-black/10" style={{ backgroundColor: c }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (tipo === 'anodizado') {
+    return (
+      <div className={base} style={FONDO_ANODIZADO}>
+        <span className="font-mono text-xl font-bold tracking-[0.2em] text-zinc-100 sm:text-2xl">Q1 · ARRANQUE</span>
+        <span className="font-mono text-xs tracking-[0.3em] text-zinc-300">BOMBA CENTRÍFUGA 7,5 kW</span>
+      </div>
+    );
+  }
+
+  if (tipo === 'pintada') {
+    return (
+      <div className={base} style={{ backgroundImage: 'linear-gradient(150deg, #1e3a5f, #142a46)' }}>
+        <span className="font-mono text-xl font-bold tracking-[0.2em] sm:text-2xl" style={TEXTO_METAL}>
+          TABLERO TG-01
+        </span>
+        <span className="font-mono text-xs tracking-[0.3em]" style={TEXTO_METAL}>
+          GRABADO A METAL
+        </span>
+      </div>
+    );
+  }
+
+  if (tipo === 'plastico') {
+    return (
+      <div className={base} style={{ backgroundImage: 'linear-gradient(150deg, #fafaf9, #e7e5e4)' }}>
+        <span className="font-mono text-xl font-bold tracking-[0.2em] text-zinc-700 sm:text-2xl">REF 2210-B</span>
+        <span className="font-mono text-xs tracking-[0.3em] text-zinc-500">POM · PEAD · ABS</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={base} style={FONDO_GRANITO}>
+      <span className="font-serif text-3xl italic text-stone-100">In memoriam</span>
+      <span className="font-serif text-sm tracking-[0.35em]" style={{ color: '#c8a96a' }}>
+        1948 — 2026
+      </span>
+    </div>
+  );
+}
+
+// Ilustración de un frente de tablero: orificios mecanizados y textos grabados.
+function PanelFrente() {
+  const orificios = ['MARCHA', 'PARADA', 'RESET', 'AUTO', 'MANUAL', 'ALARMA'];
+
+  return (
+    <div className="flex h-full w-full flex-col justify-center gap-7 p-8 sm:p-10" style={FONDO_ANODIZADO}>
+      <div className="mx-auto w-full max-w-xs">
+        <div className="mb-2 text-center font-mono text-[10px] font-bold tracking-[0.3em] text-zinc-100">
+          PANTALLA
+        </div>
+        <div className="h-14 border border-zinc-600 bg-zinc-950" />
+      </div>
+      <div className="grid grid-cols-3 gap-y-6">
+        {orificios.map((t) => (
+          <div key={t} className="flex flex-col items-center gap-2">
+            <span className="font-mono text-[10px] font-bold tracking-[0.2em] text-zinc-100">{t}</span>
+            <span className="h-10 w-10 rounded-full border border-zinc-600 bg-zinc-950" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
 function WhatsAppWidget() {
   const [abierto, setAbierto] = useState(false);
-  const [mensaje, setMensaje] = useState(
-    'Hola NP Solutions, quiero cotizar un trabajo de grabado láser.'
-  );
+  const [mensaje, setMensaje] = useState('Hola NP Solutions, quiero cotizar un trabajo.');
 
   useEffect(() => {
     if (!abierto) return;
@@ -962,38 +1128,28 @@ function WhatsAppWidget() {
           id="panel-whatsapp"
           role="dialog"
           aria-label="Enviar mensaje por WhatsApp"
-          className="w-[calc(100vw-3rem)] max-w-sm border border-emerald-500/40 bg-zinc-950/95 shadow-2xl backdrop-blur rounded-none"
+          className="w-[calc(100vw-3rem)] max-w-sm border border-zinc-200 bg-white shadow-2xl"
         >
-          <div className="flex items-center justify-between border-b border-zinc-900 px-4 py-3">
-            <div className="flex items-center gap-3">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="absolute inline-flex h-full w-full animate-ping bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-2.5 w-2.5 bg-emerald-500" />
-              </span>
-              <div className="font-mono">
-                <div className="text-xs font-bold text-white">
-                  <span className="text-orange-500">[NP]</span> NP SOLUTIONS
-                </div>
-                <div className="text-[10px] uppercase tracking-wider text-zinc-500">
-                  Lun a Vie · 08:00 a 18:00 hs
-                </div>
-              </div>
+          <div className="flex items-center justify-between bg-emerald-700 px-4 py-3 text-white">
+            <div>
+              <div className="text-sm font-semibold">NP Solutions</div>
+              <div className="text-xs text-emerald-100">Lun a Vie · 08:00 a 18:00 hs</div>
             </div>
             <button
               type="button"
               onClick={() => setAbierto(false)}
               aria-label="Cerrar chat de WhatsApp"
-              className="p-1 text-zinc-500 hover:text-white focus:outline-none"
+              className="p-1 text-emerald-100 hover:text-white focus:outline-none"
             >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="square" strokeWidth="1.5" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
 
           <div className="space-y-3 p-4">
-            <div className="border border-zinc-800 bg-zinc-900/60 p-3 font-sans text-xs leading-relaxed text-zinc-300">
-              Hola, ¿en qué te podemos ayudar? Escribinos qué pieza o trabajo necesitás y te respondemos por WhatsApp.
+            <div className="bg-zinc-100 p-3 text-sm leading-relaxed text-zinc-700">
+              Hola, ¿en qué te podemos ayudar? Contanos qué pieza o trabajo necesitás y te respondemos por WhatsApp.
             </div>
 
             <label htmlFor="mensaje-whatsapp" className="sr-only">
@@ -1006,7 +1162,7 @@ function WhatsAppWidget() {
               value={mensaje}
               onChange={(e) => setMensaje(e.target.value)}
               placeholder="Escribí tu mensaje..."
-              className="w-full resize-none rounded-none border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:border-emerald-500 focus:outline-none"
+              className="w-full resize-none border border-zinc-300 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
             />
 
             <a
@@ -1017,7 +1173,7 @@ function WhatsAppWidget() {
               onClick={() => {
                 if (textoLimpio) setAbierto(false);
               }}
-              className="flex w-full items-center justify-center gap-2 rounded-none bg-emerald-600 px-4 py-3 font-mono text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-emerald-500 aria-disabled:pointer-events-none aria-disabled:opacity-50"
+              className="flex w-full items-center justify-center bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 aria-disabled:pointer-events-none aria-disabled:opacity-50"
             >
               Enviar por WhatsApp
             </a>
@@ -1031,22 +1187,12 @@ function WhatsAppWidget() {
         aria-expanded={abierto}
         aria-controls="panel-whatsapp"
         aria-label={abierto ? 'Cerrar chat de WhatsApp' : 'Abrir chat de WhatsApp con NP Solutions'}
-        className="flex items-center gap-3 border border-emerald-500/40 bg-zinc-950/95 px-4 py-3 text-emerald-400 shadow-2xl backdrop-blur transition-transform hover:scale-105 hover:border-emerald-400 hover:text-emerald-300 rounded-none focus:outline-none"
+        className="flex items-center gap-3 bg-emerald-600 px-4 py-3.5 text-white shadow-lg transition-colors hover:bg-emerald-700 focus:outline-none"
       >
-        <span className="relative flex h-3 w-3">
-          <span className="absolute inline-flex h-full w-full animate-ping bg-emerald-400 opacity-75" />
-          <span className="relative inline-flex h-3 w-3 bg-emerald-500" />
-        </span>
-        <svg
-          className="h-5 w-5 fill-current"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
         </svg>
-        <span className="font-mono text-xs font-bold uppercase tracking-wider hidden sm:inline">
-          {abierto ? 'Cerrar chat' : 'Cotizar por WhatsApp'}
-        </span>
+        <span className="hidden text-sm font-semibold sm:inline">{abierto ? 'Cerrar' : 'WhatsApp'}</span>
       </button>
     </aside>
   );
