@@ -577,7 +577,7 @@ export default function Home() {
 
         <div className="mx-auto max-w-7xl mt-12 pt-6 border-t border-zinc-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-zinc-600">
           <div>
-            © {new Date().getFullYear()} NP Solutions. Todos los derechos reservados.
+           © 2026 NP Solutions. Todos los derechos reservados.
           </div>
           <div>
             Pilar · Buenos Aires · República Argentina
