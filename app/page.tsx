@@ -76,20 +76,20 @@ const DATOS_CLAVE: Array<{
   prefijo?: string;
   sufijo?: string;
 }> = [
-  { prefijo: 'MOPA ', numero: 100, desde: 0, sufijo: ' W', texto: 'Láser de fibra con pulso ajustable' },
-  { prefijo: '±', numero: 0.1, desde: 2, decimales: 1, sufijo: ' mm', texto: 'Tolerancia estándar en router CNC Difra' },
-  { valor: '1 proveedor', texto: 'Corte, plegado, torneado y pintura con aliados' },
+  { prefijo: '±', numero: 0.1, desde: 2, decimales: 1, sufijo: ' mm', texto: 'Precisión en piezas mecanizadas' },
+  { valor: 'Permanente', texto: 'Marcado resistente a la abrasión y la intemperie' },
+  { valor: 'Llave en mano', texto: 'Un solo interlocutor para todo el proyecto' },
   { valor: 'Pilar, Bs. As.', texto: 'Taller propio' },
 ];
 
-const SERVICIOS_PROPIOS = [
+const SERVICIOS_ESPECIALIDAD = [
   {
     titulo: 'Grabado y marcado láser',
-    texto: 'Láser de fibra MOPA para textos, logos, números de serie, códigos QR y DataMatrix sobre metal, plástico y piedra.',
+    texto: 'Textos, logos, números de serie, códigos QR y DataMatrix sobre metal, plástico y piedra, con marcado permanente y alta definición.',
   },
   {
     titulo: 'Mecanizado CNC',
-    texto: 'Router CNC Difra para ruteo, fresado y perforado de plásticos técnicos, aluminio y piedra, con tolerancia estándar de ±0,1 mm.',
+    texto: 'Ruteo, fresado y perforado de plásticos técnicos, aluminio y piedra, con terminación prolija y medidas según plano.',
   },
   {
     titulo: 'Frentes de tablero',
@@ -101,7 +101,7 @@ const SERVICIOS_PROPIOS = [
   },
 ];
 
-const SERVICIOS_ALIADOS = [
+const SERVICIOS_INTEGRALES = [
   { titulo: 'Corte láser de chapa', texto: 'Piezas planas en acero al carbono, inoxidable y aluminio según tu plano.' },
   { titulo: 'Plegado', texto: 'Gabinetes, soportes y piezas de chapa plegada.' },
   { titulo: 'Torneado', texto: 'Bujes, ejes y piezas de revolución.' },
@@ -131,7 +131,7 @@ const MATERIALES: Array<{
     nombre: 'Grabado en color sobre inoxidable',
     resultado: 'Colores por oxidación controlada',
     descripcion:
-      'El láser MOPA genera colores sobre el acero inoxidable sin tintas ni solventes: dorados, violetas, azules y turquesas.',
+      'Logramos colores sobre el acero inoxidable sin tintas ni solventes: dorados, violetas, azules y turquesas.',
     usos: 'Identificación visual, logos, piezas decorativas',
   },
   {
@@ -149,7 +149,7 @@ const MATERIALES: Array<{
     nombre: 'Chapa pintada',
     resultado: 'Grabado que deja el metal a la vista',
     descripcion:
-      'El láser retira la pintura con precisión y deja el texto en metal brillante sobre el color de la pieza.',
+      'Retiramos la pintura con precisión y el texto queda en metal brillante sobre el color de la pieza.',
     usos: 'Gabinetes, puertas de tablero, carcasas',
   },
   {
@@ -176,9 +176,9 @@ type Material = (typeof MATERIALES)[number];
 
 const FICHA_FRENTES: Array<[string, string]> = [
   ['Materiales', 'Aluminio anodizado, acero inoxidable, policarbonato, acrílico y ABS'],
-  ['Tolerancia', '±0,1 mm en el mecanizado (router CNC Difra)'],
+  ['Tolerancia', '±0,1 mm en el mecanizado'],
   ['Archivos', 'DXF, DWG, PDF con cotas o croquis con la lista de componentes'],
-  ['Con aliados', 'Corte láser de chapa, plegado y pintura del gabinete o la placa'],
+  ['Complementos', 'Corte de chapa, plegado y pintura del gabinete o la placa'],
 ];
 
 const TRABAJOS_FUNERARIOS = [
@@ -229,7 +229,7 @@ const PASOS = [
   {
     numero: '03',
     titulo: 'Fabricación',
-    texto: 'Grabamos y mecanizamos en nuestro taller de Pilar. Si la pieza necesita corte, plegado, torneado o pintura, lo coordinamos con nuestros aliados.',
+    texto: 'Grabamos y mecanizamos en nuestro taller de Pilar. Si el proyecto incluye corte, plegado, torneado o pintura, lo resolvemos dentro del mismo pedido.',
   },
   {
     numero: '04',
@@ -465,8 +465,8 @@ function Hero() {
             className="np-entrada mt-6 max-w-xl text-lg leading-relaxed text-slate-300"
             style={{ animationDelay: '200ms' }}
           >
-            Marcado permanente, frentes de tablero, piezas mecanizadas y trabajos en piedra. Lo que no hacemos en
-            nuestro taller lo resolvemos con aliados estratégicos: corte láser, plegado, torneado y pintura.
+            Marcado permanente, frentes de tablero, piezas mecanizadas y trabajos en piedra. Y cuando el proyecto lo
+            requiere, también corte, plegado, torneado y pintura: recibís la pieza terminada de un solo proveedor.
           </p>
           <div className="np-entrada mt-10 flex flex-col gap-3 sm:flex-row" style={{ animationDelay: '300ms' }}>
             <a
@@ -554,12 +554,12 @@ function SeccionServicios() {
           <EncabezadoSeccion
             antetitulo="Qué hacemos"
             titulo="Del plano a la pieza terminada"
-            texto="Grabamos y mecanizamos en nuestro taller de Pilar. Para los procesos que no hacemos internamente trabajamos con aliados estratégicos y coordinamos todo nosotros: un solo interlocutor, una sola cotización."
+            texto="Grabado, mecanizado y fabricación de piezas y conjuntos para la industria. Un solo interlocutor y una sola cotización, desde el primer plano hasta la entrega."
           />
         </Revelar>
         <div className="mt-14 grid gap-12 lg:grid-cols-2">
-          <GrupoServicios titulo="En nuestro taller" nota="Pilar, Buenos Aires" items={SERVICIOS_PROPIOS} />
-          <GrupoServicios titulo="Con nuestra red de aliados" nota="Coordinado por nosotros" items={SERVICIOS_ALIADOS} />
+          <GrupoServicios titulo="Grabado y mecanizado" nota="Nuestra especialidad" items={SERVICIOS_ESPECIALIDAD} />
+          <GrupoServicios titulo="Fabricación integral" nota="Proyecto completo" items={SERVICIOS_INTEGRALES} />
         </div>
       </div>
     </section>
@@ -614,7 +614,7 @@ function SeccionMateriales() {
           <EncabezadoSeccion
             antetitulo="Materiales y acabados"
             titulo="Qué podemos grabar y mecanizar"
-            texto="El láser de fibra MOPA permite ajustar el pulso a cada material: marcado oscuro en inoxidable, colores, alto contraste en aluminio y grabado en piedra."
+            texto="Ajustamos el proceso a cada material para lograr el mejor resultado: marcado oscuro en inoxidable, colores, alto contraste en aluminio y grabado en piedra."
           />
         </Revelar>
         <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -1352,7 +1352,7 @@ function PiePagina() {
         <div>
           <Logo claro />
           <p className="mt-4 leading-relaxed">
-            Grabado láser, mecanizado CNC y fabricación integral con aliados estratégicos.
+            Grabado láser, mecanizado CNC y fabricación integral para la industria.
           </p>
           <p className="mt-4">
             CUIT <span className="text-slate-200">30-71924978-3</span>
@@ -1711,7 +1711,7 @@ const GRABADOS: Array<{
   },
   {
     material: 'COLOR SOBRE INOX',
-    texto: 'COLOR MOPA',
+    texto: 'GRABADO COLOR',
     detalle: 'OXIDACIÓN CONTROLADA',
     fondo: FONDO_INOX,
     estiloTexto: TEXTO_COLOR,
@@ -1770,7 +1770,7 @@ function LaserDemo() {
       <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between bg-slate-950/70 px-4 py-2.5 font-mono text-[10px] tracking-[0.2em] text-cyan-200 backdrop-blur-sm">
         <span className="flex items-center gap-2">
           <span className="np-parpadeo h-1.5 w-1.5 rounded-full bg-cyan-400" />
-          LÁSER MOPA · 100 W
+          MARCADO LÁSER
         </span>
         <span className="text-slate-300">{g.material}</span>
       </div>
@@ -1850,7 +1850,7 @@ function Muestra({ tipo }: { tipo: TipoMuestra }) {
       <div className={base} style={FONDO_INOX}>
         {reflejo}
         <span className="np-color-vivo font-mono text-xl font-bold tracking-[0.2em] sm:text-2xl" style={TEXTO_COLOR}>
-          COLOR MOPA
+          GRABADO COLOR
         </span>
         <div className="flex gap-2">
           {['#b8860b', '#a16207', '#9333ea', '#2563eb', '#0e7490'].map((c) => (
